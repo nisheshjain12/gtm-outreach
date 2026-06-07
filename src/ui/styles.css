@@ -1,0 +1,59 @@
+/* GTM Outreach Engine — custom styles (D1). Injected via inject_css(). */
+
+/* ── Badges ─────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+/* ── Signal cards ───────────────────────────────────────────────────────── */
+.signal-card {
+  border-left: 3px solid #4f46e5;
+  background: #f8faff;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+.signal-card--sensitive {
+  border-left-color: #dc2626;
+  background: #fff5f5;
+}
+
+/* ── Stage progress ─────────────────────────────────────────────────────── */
+.stage-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+.stage-done   { color: #16a34a; font-weight: 600; }
+.stage-active { color: #4f46e5; font-weight: 600; }
+.stage-wait   { color: #9ca3af; }
+
+/* ── Metric overrides ───────────────────────────────────────────────────── */
+[data-testid="stMetricValue"] { font-size: 20px !important; }
+
+/* ── Compact hook box ───────────────────────────────────────────────────── */
+.hook-box {
+  background: #f0fdf4;
+  border-left: 3px solid #16a34a;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+/* ── Draft box ──────────────────────────────────────────────────────────── */
+.draft-box {
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  font-family: Georgia, serif;
+  line-height: 1.6;
+}

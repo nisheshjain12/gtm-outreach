@@ -1,0 +1,22 @@
+# GTM Personalized Outreach Engine — dependencies
+# App / UI
+streamlit>=1.40
+
+# Orchestration
+langgraph>=0.2.50
+langchain-core>=0.3
+
+# LLM
+google-genai>=1.0
+
+# Research
+tavily-python>=0.5
+
+# Persistence
+supabase>=2.9
+
+# Config / utils
+python-dotenv>=1.0
+
+# Dev / test (not installed on Streamlit Cloud)
+# pytest>=8.0  — run locally: pip install pytest

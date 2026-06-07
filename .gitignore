@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Secrets / env
+.env
+.streamlit/secrets.toml
+
+# Cache (per-query Tavily/Claude responses)
+cache/
+
+# Spike / prototype (dev-only)
+spike/
+
+# Test cache
+.pytest_cache/
+tests/__pycache__/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

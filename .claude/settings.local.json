@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(python -m venv .venv)",
+      "PowerShell(.\\\\.venv\\\\Scripts\\\\python.exe -m pip install --upgrade pip --quiet)",
+      "PowerShell(.\\\\.venv\\\\Scripts\\\\python.exe -m pip install -r requirements.txt)",
+      "PowerShell(.\\\\.venv\\\\Scripts\\\\python.exe -c \"import sys; sys.path.insert\\(0,'.'\\); from src.db import supabase_client as db; db.get_client\\(\\).table\\('runs'\\).delete\\(\\).eq\\('status','test'\\).execute\\(\\); print\\('cleaned test runs; remaining:', len\\(db.list_runs\\(\\)\\)\\)\")"
+    ]
+  }
+}
