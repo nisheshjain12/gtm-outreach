@@ -90,11 +90,19 @@ def render_signal_card(sig: dict) -> None:
         if url else ""
     )
 
+    hook_sentence = sig.get("hook_sentence") or ""
+    hook_html = (
+        f'<br><span style="color:#4f46e5;font-size:13px;font-style:italic;">'
+        f'&#8220;{hook_sentence}&#8221;</span>'
+        if hook_sentence else ""
+    )
+
     st.markdown(
         f'<div style="border-left:3px solid {border};background:{bg};'
         f'padding:12px 16px;border-radius:4px;margin:6px 0;">'
         f'<b>{type_label}</b>{sens_tag}'
         f'<br><span style="color:#374151;font-size:14px;">{desc}</span>'
+        f'{hook_html}'
         f'{src_link}</div>',
         unsafe_allow_html=True,
     )

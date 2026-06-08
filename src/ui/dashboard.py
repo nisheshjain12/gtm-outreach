@@ -168,8 +168,6 @@ def _render_signals_tab(signals: list[dict]) -> None:
     )
     for sig in signals:
         render_signal_card(_sig_for_card(sig))
-        if sig.get("hook_sentence"):
-            st.caption(f"Hook sentence: {sig['hook_sentence']}")
         st.markdown("---")
 
 
