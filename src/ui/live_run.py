@@ -54,10 +54,31 @@ def render(graph) -> None:
     cfg = {"configurable": {"thread_id": st.session_state.thread_id}}
 
     if st.session_state.get("run_error"):
-        st.error(f"Pipeline error — {st.session_state.run_error}")
-        if st.button("Reset"):
-            _reset_session()
-            st.rerun()
+        err = st.session_state.run_error
+        is_quota = "RESOURCE_EXHAUSTED" in err or "429" in err
+        st.error(f"Pipeline error — {err[:300]}")
+
+        if is_quota:
+            st.warning(
+                "Gemini daily quota exhausted. The pipeline is **checkpointed** — "
+                "your research and signals are saved. Click **Retry** once quota resets "
+                "(midnight Pacific) and it will resume from where it stopped."
+            )
+
+        col_retry, col_reset = st.columns(2)
+        with col_retry:
+            if st.button("Retry pipeline", type="primary", width="stretch"):
+                st.session_state.pop("run_error", None)
+                with st.spinner("Resuming from checkpoint…"):
+                    try:
+                        graph.invoke(None, config=cfg)
+                    except Exception as exc:
+                        st.session_state.run_error = str(exc)
+                st.rerun()
+        with col_reset:
+            if st.button("Start new run", width="stretch"):
+                _reset_session()
+                st.rerun()
         return
 
     if not st.session_state.get("run_started"):
