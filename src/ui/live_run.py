@@ -197,10 +197,36 @@ def _render_pipeline_summary(state: dict) -> None:
     company   = state.get("company", "")
 
     with st.expander(f"Pipeline — {prospect} @ {company}", expanded=True):
+        # Stage progress row
+        scored   = any(s.get("total_score") is not None for s in signals)
+        stages = [
+            ("Research",  bool(research)),
+            ("Extract",   bool(signals)),
+            ("Score",     scored),
+            ("Hook",      bool(state.get("hook"))),
+            ("Draft",     bool(state.get("drafts"))),
+            ("Approved",  state.get("approval_status") == "approved"),
+        ]
+        parts = []
+        active_set = False
+        for name, done in stages:
+            if done:
+                parts.append(f'<span class="stage-done">&#10003; {name}</span>')
+            elif not active_set:
+                parts.append(f'<span class="stage-active">&#9654; {name}</span>')
+                active_set = True
+            else:
+                parts.append(f'<span class="stage-wait">{name}</span>')
+        arrow = '<span class="stage-arrow">&#8594;</span>'
+        st.markdown(
+            f'<div class="stage-progress">{arrow.join(parts)}</div>',
+            unsafe_allow_html=True,
+        )
+
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Sources found",  len(research))
         c2.metric("Signals",        len(signals))
-        c3.metric("Mode",           mode)
+        c3.metric("Mode",           mode.title())
         c4.metric("Freshness",      freshness or "—")
 
         if flags:

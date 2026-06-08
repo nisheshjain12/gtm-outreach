@@ -1,5 +1,28 @@
 /* GTM Outreach Engine — custom styles (D1). Injected via inject_css(). */
 
+/* ── Global typography ──────────────────────────────────────────────────── */
+[data-testid="stAppViewContainer"] {
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+/* ── Sidebar branding ───────────────────────────────────────────────────── */
+.gtm-brand {
+  padding: 8px 0 16px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 8px;
+}
+.gtm-brand h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4f46e5;
+  margin: 0 0 2px 0;
+}
+.gtm-brand p {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
 /* ── Badges ─────────────────────────────────────────────────────────────── */
 .badge {
   display: inline-block;
@@ -10,50 +33,141 @@
   margin-right: 4px;
 }
 
+/* ── Stage progress bar ─────────────────────────────────────────────────── */
+.stage-progress {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 10px 0 6px 0;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.stage-done {
+  color: #16a34a;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.stage-active {
+  color: #4f46e5;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: pulse-text 1.4s ease-in-out infinite;
+}
+.stage-wait {
+  color: #d1d5db;
+  white-space: nowrap;
+}
+.stage-arrow {
+  color: #d1d5db;
+  margin: 0 5px;
+  font-size: 11px;
+}
+@keyframes pulse-text {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
 /* ── Signal cards ───────────────────────────────────────────────────────── */
 .signal-card {
   border-left: 3px solid #4f46e5;
   background: #f8faff;
   padding: 12px 16px;
-  border-radius: 4px;
+  border-radius: 6px;
   margin: 8px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: box-shadow 0.15s ease;
+}
+.signal-card:hover {
+  box-shadow: 0 2px 8px rgba(79,70,229,0.12);
 }
 .signal-card--sensitive {
   border-left-color: #dc2626;
   background: #fff5f5;
+  box-shadow: 0 1px 3px rgba(220,38,38,0.08);
 }
-
-/* ── Stage progress ─────────────────────────────────────────────────────── */
-.stage-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 14px;
-}
-.stage-done   { color: #16a34a; font-weight: 600; }
-.stage-active { color: #4f46e5; font-weight: 600; }
-.stage-wait   { color: #9ca3af; }
 
 /* ── Metric overrides ───────────────────────────────────────────────────── */
-[data-testid="stMetricValue"] { font-size: 20px !important; }
+[data-testid="stMetricValue"] {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+}
+[data-testid="stMetricLabel"] {
+  font-size: 12px !important;
+  color: #6b7280 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 
-/* ── Compact hook box ───────────────────────────────────────────────────── */
+/* ── Hook box ───────────────────────────────────────────────────────────── */
 .hook-box {
-  background: #f0fdf4;
-  border-left: 3px solid #16a34a;
-  padding: 12px 16px;
-  border-radius: 4px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border-left: 4px solid #16a34a;
+  padding: 14px 18px;
+  border-radius: 6px;
   margin: 8px 0;
+  box-shadow: 0 1px 4px rgba(22,163,74,0.1);
 }
 
 /* ── Draft box ──────────────────────────────────────────────────────────── */
 .draft-box {
   background: #fafafa;
   border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px;
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.7;
+  font-size: 14px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ── Info / alert boxes ─────────────────────────────────────────────────── */
+.alert-collision {
+  background: #faf5ff;
+  border: 1px solid #c4b5fd;
+  border-left: 4px solid #7c3aed;
   border-radius: 6px;
-  padding: 16px;
-  font-family: Georgia, serif;
-  line-height: 1.6;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+.alert-account {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-left: 4px solid #ea580c;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+/* ── Completed run success banner ───────────────────────────────────────── */
+.run-complete-banner {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.run-complete-banner h3 {
+  color: #15803d;
+  margin: 0 0 4px 0;
+  font-size: 16px;
+}
+.run-complete-banner p {
+  color: #166534;
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ── Dividers ───────────────────────────────────────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(to right, #e5e7eb, transparent);
+  margin: 16px 0;
+  border: none;
+}
+
+/* ── Pipeline summary expander ──────────────────────────────────────────── */
+[data-testid="stExpander"] > div:first-child {
+  background: #fafbff;
+  border-radius: 6px;
 }
