@@ -266,7 +266,11 @@ def _render_disambiguate(payload: dict, state: dict, graph, cfg: dict) -> None:
     if not candidates:
         st.info(f"Could not find multiple profiles for **{name}**. Continuing with original.")
         if st.button("Continue", type="primary"):
-            graph.invoke(Command(resume={}), config=cfg)
+            with st.spinner("Continuing…"):
+                try:
+                    graph.invoke(Command(resume={}), config=cfg)
+                except Exception as exc:
+                    st.session_state.run_error = str(exc)
             st.rerun()
         return
 
@@ -290,7 +294,11 @@ def _render_disambiguate(payload: dict, state: dict, graph, cfg: dict) -> None:
             st.caption(f"[{i}] Source: {c['source_url'][:80]}")
 
     if st.button("Select & Continue", type="primary"):
-        graph.invoke(Command(resume=candidates[idx]), config=cfg)
+        with st.spinner("Continuing pipeline…"):
+            try:
+                graph.invoke(Command(resume=candidates[idx]), config=cfg)
+            except Exception as exc:
+                st.session_state.run_error = str(exc)
         st.rerun()
 
 
