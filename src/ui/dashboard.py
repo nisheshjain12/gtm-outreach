@@ -104,7 +104,7 @@ def _apply_filters(runs: list[dict]) -> list[dict]:
     with c1:
         status_f = st.selectbox(
             "Status",
-            ["All", "completed", "researching", "running", "error"],
+            ["All", "completed", "researching", "running", "failed", "error"],
             key="dash_status",
         )
     with c2:
