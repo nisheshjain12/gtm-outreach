@@ -110,26 +110,34 @@ def _render_input_form(graph, cfg: dict) -> None:
 
     profile = db.get_seller_profile() or {}
 
+    # Pre-fill values from a Dashboard "Re-run" click (cleared after use)
+    prefill = st.session_state.pop("rerun_prefill", {})
+    if prefill:
+        st.info("Form pre-filled from the failed run — review and submit when ready.")
+
     with st.form("prospect_form"):
         company = st.text_input(
             "Company *",
+            value=prefill.get("company", ""),
             placeholder="e.g. Perplexity AI",
         )
         col1, col2 = st.columns(2)
         with col1:
             prospect = st.text_input(
                 "Prospect name",
+                value=prefill.get("prospect_name", ""),
                 placeholder="e.g. Aravind Srinivas   (blank = Account mode)",
             )
         with col2:
             role = st.text_input(
                 "Role / Title",
+                value=prefill.get("role", ""),
                 placeholder="e.g. CEO & Co-founder",
             )
 
         goal = st.text_input(
             "Outreach goal",
-            value="book a 20-minute discovery call",
+            value=prefill.get("outreach_goal", "") or "book a 20-minute discovery call",
         )
         context = st.text_area(
             "Extra context  (optional)",
@@ -141,7 +149,7 @@ def _render_input_form(graph, cfg: dict) -> None:
         st.caption("Product context — pre-filled from Seller Profile. Override per-run if needed.")
         product_override = st.text_area(
             "What you sell",
-            value=profile.get("product_description", ""),
+            value=prefill.get("product_description", "") or profile.get("product_description", ""),
             placeholder="Configure once in Settings > Seller Profile",
             height=80,
         )

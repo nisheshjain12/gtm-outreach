@@ -340,6 +340,19 @@ def _render_run_row(run: dict) -> None:
             f"Goal: {run.get('outreach_goal') or '—'}"
         )
 
+        # Re-run button for failed/error runs
+        if status in ("failed", "error"):
+            if st.button("Re-run this prospect", key=f"rerun_{run_id}", type="primary"):
+                st.session_state["rerun_prefill"] = {
+                    "company":             run.get("company", ""),
+                    "prospect_name":       run.get("prospect_name") or "",
+                    "role":                run.get("role") or "",
+                    "outreach_goal":       run.get("outreach_goal") or "",
+                    "product_description": run.get("product_description") or "",
+                }
+                st.session_state["nav_page"] = "Live Run"
+                st.rerun()
+
         # Detail tabs — lazy-loaded inside expander keeps the list fast
         detail = _load_run_detail(run_id)
 

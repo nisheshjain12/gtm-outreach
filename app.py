@@ -1,7 +1,3 @@
-"""GTM Personalized Outreach Engine — Streamlit entry point.
-
-Run:  streamlit run app.py
-"""
 import streamlit as st
 
 from src import config
@@ -18,7 +14,7 @@ st.set_page_config(
 
 inject_css()  # load custom styles on every page
 
-# ── Sidebar ──────────────────────────────────────────────────────────────────
+# ────── Sidebar ────── #
 
 st.sidebar.markdown(
     '<div class="gtm-brand">'
@@ -28,7 +24,8 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-page = st.sidebar.radio("Navigation", ["Live Run", "Dashboard", "Settings"], label_visibility="collapsed")
+page = st.sidebar.radio("Navigation", ["Live Run", "Dashboard", "Settings"],
+                        label_visibility="collapsed", key="nav_page")
 st.sidebar.markdown("---")
 
 missing = config.missing_keys()
