@@ -30,6 +30,11 @@ def _route_after_flag(state: RunState) -> str:
     return "disambiguate" if "ambiguous_name" in state.get("flags", []) else "score"
 
 
+def _route_after_draft_review(state: RunState) -> str:
+    # "edit" with instructions loops back to regenerate; otherwise proceed.
+    return "draft" if state.get("draft_action") == "edit" else "approve"
+
+
 def build_graph(checkpointer=None):
     """Return a compiled LangGraph pipeline.
 
@@ -71,7 +76,13 @@ def build_graph(checkpointer=None):
     g.add_edge("signal_review", "hook")
     g.add_edge("hook",          "draft")
     g.add_edge("draft",         "draft_review")
-    g.add_edge("draft_review",  "approve")
+
+    g.add_conditional_edges(
+        "draft_review",
+        _route_after_draft_review,
+        {"draft": "draft", "approve": "approve"},
+    )
+
     g.add_edge("approve",       "store")
     g.add_edge("store",         END)
 

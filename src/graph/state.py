@@ -58,6 +58,8 @@ class RunState(TypedDict, total=False):
 
     # Stage 7 — drafts
     drafts: dict                           # {"email": {...}, "linkedin": {...}}
+    regen_instructions: Optional[str]      # set on regenerate; consumed by draft node
+    draft_action: Optional[str]            # "edit" -> loop to draft, "approve" -> forward
 
     # Stage 8/9
     human_edits: list[dict]
