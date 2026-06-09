@@ -50,29 +50,35 @@ def _raw_call(client: genai.Client, model_name: str, prompt: str) -> str:
     return response.text
 
 
-def _is_daily_quota_exhausted(exc: Exception) -> bool:
+def _is_quota_error(exc: Exception | None) -> bool:
+    """Any rate/quota rejection (429) — per-minute or per-day."""
+    if exc is None:
+        return False
     msg = str(exc)
-    return "RESOURCE_EXHAUSTED" in msg and "PerDay" in msg
+    return "RESOURCE_EXHAUSTED" in msg or "429" in msg
+
+
+def _is_daily_quota(exc: Exception) -> bool:
+    """A per-DAY quota rejection — backoff won't help, fail fast to fallback."""
+    return "PerDay" in str(exc)
 
 
 def _try_key(client: genai.Client, model_name: str, prompt: str):
     """Run the model cascade (flash <-> flash-lite) on ONE key.
 
-    Returns (text, last_exc, key_daily_exhausted):
+    Returns (text, last_exc, should_rotate):
       • text is the response on success, else None
-      • key_daily_exhausted is True only when every model on this key hit
-        its daily quota — the signal to rotate to the next key. A transient
-        failure (503 / per-minute 429) returns False, because another key
-        won't fix a model outage.
+      • should_rotate is True when the failure is a quota error (429) — a
+        different key (ideally a different project) has separate quota, so
+        rotating helps. A transient server error (503) returns False, since
+        another key won't fix a server-side outage.
     """
     last_exc: Exception | None = None
     tried: list[str] = []
     current = model_name
-    transient_failure = False
 
     while current and current not in tried:
         tried.append(current)
-        daily_exhausted = False
 
         for delay in (0, 5, 15, 30, 60):
             if delay:
@@ -83,29 +89,31 @@ def _try_key(client: genai.Client, model_name: str, prompt: str):
             except Exception as exc:  # noqa: BLE001
                 last_exc = exc
                 log.warning("Gemini error [%s]: %s", current, str(exc)[:200])
-                if _is_daily_quota_exhausted(exc):
-                    daily_exhausted = True
-                    break  # no point retrying; jump to fallback model
+                if _is_daily_quota(exc):
+                    break  # daily limit — don't waste the remaining backoff
 
-        if not daily_exhausted:
-            transient_failure = True
-            break  # transient error survived all retries
+        if not _is_quota_error(last_exc):
+            # Transient server error (503) survived retries — a different model
+            # or key won't help. Stop and report it as non-rotatable.
+            return None, last_exc, False
 
+        # Quota error on this model — try the partner model on the same key.
         fallback = _FALLBACK_CHAIN.get(current)
         if fallback:
-            log.warning("Daily quota exhausted for %s — cascading to %s", current, fallback)
+            log.warning("Quota hit on %s — cascading to %s", current, fallback)
         current = fallback  # type: ignore[assignment]
 
-    return None, last_exc, not transient_failure
+    # Every model on this key is quota-limited — rotate to the next key.
+    return None, last_exc, True
 
 
 def _call_with_backoff(model_name: str, prompt: str) -> str:
     """Call Gemini with per-key model cascade + multi-key rotation.
 
     For each configured key (config.gemini_api_keys), runs the flash <->
-    flash-lite cascade with backoff. When a key's daily quota is exhausted
-    across both models, rotates to the next key. A transient failure stops
-    early (another key won't help a server-side outage).
+    flash-lite cascade with backoff. When a key is quota-limited across both
+    models, rotates to the next key. A transient (503) failure stops early —
+    another key won't help a server-side outage.
     """
     keys = config.gemini_api_keys()
     if not keys:
@@ -114,14 +122,14 @@ def _call_with_backoff(model_name: str, prompt: str) -> str:
     last_exc: Exception | None = None
     for idx, api_key in enumerate(keys):
         if idx:
-            log.warning("Gemini daily quota exhausted — rotating to key #%d of %d", idx + 1, len(keys))
+            log.warning("Gemini quota hit — rotating to key #%d of %d", idx + 1, len(keys))
         client = _get_client(api_key)
-        text, exc, key_daily_exhausted = _try_key(client, model_name, prompt)
+        text, exc, should_rotate = _try_key(client, model_name, prompt)
         if text is not None:
             return text
         last_exc = exc or last_exc
-        if not key_daily_exhausted:
-            break  # transient/model outage — more keys won't help
+        if not should_rotate:
+            break  # transient/server outage — more keys won't help
 
     raise RuntimeError(
         f"Gemini failed after retries across {len(keys)} key(s) [{model_name}]: {last_exc}"
