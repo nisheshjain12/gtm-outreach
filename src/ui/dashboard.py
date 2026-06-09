@@ -350,7 +350,7 @@ def _render_run_row(run: dict) -> None:
                     "outreach_goal":       run.get("outreach_goal") or "",
                     "product_description": run.get("product_description") or "",
                 }
-                st.session_state["nav_page"] = "Live Run"
+                st.session_state["nav_redirect"] = "Live Run"
                 st.rerun()
 
         # Detail tabs — lazy-loaded inside expander keeps the list fast

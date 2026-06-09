@@ -24,6 +24,11 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
+# Honour redirect requests from other pages (e.g. Dashboard Re-run button).
+# Must run BEFORE the radio renders — widget keys can't be set after render.
+if "nav_redirect" in st.session_state:
+    st.session_state["nav_page"] = st.session_state.pop("nav_redirect")
+
 page = st.sidebar.radio("Navigation", ["Live Run", "Dashboard", "Settings"],
                         label_visibility="collapsed", key="nav_page")
 st.sidebar.markdown("---")
