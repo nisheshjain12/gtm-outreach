@@ -310,22 +310,61 @@ def draft(state: RunState) -> dict:
 # ── 11. draft_review (interrupt) ─────────────────────────────────────────────
 
 def draft_review(state: RunState) -> dict:
-    choice = interrupt({
-        "type": "draft_review",
-        "drafts": state.get("drafts", {}),
-        "hook": state.get("hook", {}),
-        "flags": state.get("flags", []),
-    })
+    """Review loop: interrupts until user approves.
 
+    action == "edit" with instructions → re-calls Gemini, interrupts again
+    with the new draft so the user can see it before approving.
+    action == "approve" → exits the loop.
+    """
+    drafts = state.get("drafts", {})
     human_edits = list(state.get("human_edits", []))
-    action = choice.get("action", "approve")
 
-    if action == "edit" and state.get("run_id"):
-        db.log_action(state["run_id"], "draft_review", "edit", choice.get("edits"))
-        human_edits.append({"stage": "draft_review", "edits": choice.get("edits", {})})
+    while True:
+        choice = interrupt({
+            "type": "draft_review",
+            "drafts": drafts,
+            "hook": state.get("hook", {}),
+            "flags": state.get("flags", []),
+        })
 
-    updated_drafts = choice.get("updated_drafts") or state.get("drafts", {})
-    return {"human_edits": human_edits, "drafts": updated_drafts}
+        action = choice.get("action", "approve")
+
+        if action == "edit":
+            instructions = (choice.get("edits") or {}).get("instructions", "")
+            if state.get("run_id"):
+                db.log_action(state["run_id"], "draft_review", "edit", choice.get("edits"))
+            human_edits.append({"stage": "draft_review", "edits": choice.get("edits", {})})
+
+            if instructions:
+                # Re-generate with the new instructions then loop back to interrupt
+                result = llm.generate_draft(
+                    hook_json=json.dumps(state.get("hook", {})),
+                    prospect_name=state.get("prospect_name"),
+                    role=state.get("role"),
+                    company_name=state["company"],
+                    product_description=state.get("product_description", ""),
+                    outreach_goal=state.get("outreach_goal", "book a discovery call"),
+                    framing_directive=state.get("framing_directive", ""),
+                    user_instructions=instructions,
+                )
+                drafts = result
+                if state.get("run_id"):
+                    email = drafts.get("email", {})
+                    linkedin = drafts.get("linkedin", {})
+                    db.save_drafts(state["run_id"], [
+                        {"channel": "email", "subject": email.get("subject", ""), "body": email.get("body", "")},
+                        {"channel": "linkedin", "body": linkedin.get("body", "")},
+                    ])
+            else:
+                # No regen instructions — user edited inline; use the text-area values
+                drafts = choice.get("updated_drafts") or drafts
+            # loop → interrupt fires again with the updated drafts
+        else:
+            # "approve" — capture any final inline edits and exit
+            drafts = choice.get("updated_drafts") or drafts
+            break
+
+    return {"human_edits": human_edits, "drafts": drafts}
 
 
 # ── 12. approve (interrupt) ──────────────────────────────────────────────────
