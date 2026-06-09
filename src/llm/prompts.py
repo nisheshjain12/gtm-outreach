@@ -1,9 +1,3 @@
-"""Prompt templates. Exact text from architecture.md §8.
-
-All prompts must return STRICT JSON; the Claude client (Phase 3) validates and
-runs one JSON-repair retry on parse failure.
-"""
-
 # (a) Signal extraction
 EXTRACT = """You are a B2B sales-research analyst. From the raw web results below, extract
 discrete, factual SIGNALS about the prospect or their company. Do not invent
