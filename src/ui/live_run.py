@@ -22,10 +22,18 @@ from src.ui.components import (
 
 # ── Session helpers ──────────────────────────────────────────────────────────
 
+_FORM_KEYS = (
+    "form_company", "form_prospect", "form_role",
+    "form_goal", "form_context", "form_product", "form_prefilled",
+)
+
+
 def _reset_session() -> None:
     st.session_state.thread_id  = str(uuid.uuid4())
     st.session_state.run_started = False
     st.session_state.pop("run_error", None)
+    for k in _FORM_KEYS:
+        st.session_state.pop(k, None)
 
 
 def _get_interrupt_payload(snap) -> dict:
@@ -110,37 +118,52 @@ def _render_input_form(graph, cfg: dict) -> None:
 
     profile = db.get_seller_profile() or {}
 
-    # Pre-fill values from a Dashboard "Re-run" click (cleared after use)
-    prefill = st.session_state.pop("rerun_prefill", {})
-    if prefill:
+    # Pre-fill from a Dashboard "Re-run" click. Seed the WIDGET KEYS (not value=)
+    # so the values survive the submit rerun — value= would reset to empty once
+    # the prefill is consumed, because the fields were never typed into by hand.
+    prefill = st.session_state.pop("rerun_prefill", None)
+    if prefill is not None:
+        st.session_state["form_company"]  = prefill.get("company", "")
+        st.session_state["form_prospect"] = prefill.get("prospect_name", "")
+        st.session_state["form_role"]     = prefill.get("role", "")
+        st.session_state["form_goal"]     = prefill.get("outreach_goal", "") or "book a 20-minute discovery call"
+        st.session_state["form_product"]  = prefill.get("product_description", "") or profile.get("product_description", "")
+        st.session_state["form_prefilled"] = True
+
+    # Defaults for a fresh form (only applied if the key doesn't exist yet)
+    st.session_state.setdefault("form_goal", "book a 20-minute discovery call")
+    st.session_state.setdefault("form_product", profile.get("product_description", ""))
+
+    if st.session_state.get("form_prefilled"):
         st.info("Form pre-filled from the failed run — review and submit when ready.")
 
     with st.form("prospect_form"):
         company = st.text_input(
             "Company *",
-            value=prefill.get("company", ""),
+            key="form_company",
             placeholder="e.g. Perplexity AI",
         )
         col1, col2 = st.columns(2)
         with col1:
             prospect = st.text_input(
                 "Prospect name",
-                value=prefill.get("prospect_name", ""),
+                key="form_prospect",
                 placeholder="e.g. Aravind Srinivas   (blank = Account mode)",
             )
         with col2:
             role = st.text_input(
                 "Role / Title",
-                value=prefill.get("role", ""),
+                key="form_role",
                 placeholder="e.g. CEO & Co-founder",
             )
 
         goal = st.text_input(
             "Outreach goal",
-            value=prefill.get("outreach_goal", "") or "book a 20-minute discovery call",
+            key="form_goal",
         )
         context = st.text_area(
             "Extra context  (optional)",
+            key="form_context",
             placeholder="e.g. Met at SaaStr; they mentioned scaling ops headcount",
             height=70,
         )
@@ -149,7 +172,7 @@ def _render_input_form(graph, cfg: dict) -> None:
         st.caption("Product context — pre-filled from Seller Profile. Override per-run if needed.")
         product_override = st.text_area(
             "What you sell",
-            value=prefill.get("product_description", "") or profile.get("product_description", ""),
+            key="form_product",
             placeholder="Configure once in Settings > Seller Profile",
             height=80,
         )
@@ -172,6 +195,7 @@ def _render_input_form(graph, cfg: dict) -> None:
             "product_description": product_override.strip() or None,
         }
 
+        st.session_state.pop("form_prefilled", None)  # banner is one-shot
         mode_label = "Account mode" if not prospect.strip() else f"Personalized — {prospect.strip()}"
         with st.spinner(f"Running pipeline ({mode_label}) — research + extract + score…"):
             try:
