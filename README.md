@@ -6,7 +6,7 @@ Live app: *(your Streamlit Cloud URL)* · Stack: Streamlit · LangGraph · Gemin
 
 ---
 
-# Part 1 — The Non-Technical Explanation
+# Part 1 — How It Works
 
 ## The problem
 
@@ -104,7 +104,7 @@ A run can trigger **several of these at once** (they're independent flags, not o
 
 ---
 
-# Part 2 — The Technical Explanation
+# Part 2 — Under the Hood
 
 ## Architecture at a glance
 
