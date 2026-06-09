@@ -84,6 +84,7 @@ def render(graph) -> None:
                 with st.spinner("Resuming from checkpoint…"):
                     try:
                         graph.invoke(None, config=cfg)
+                        st.session_state.run_started = True
                     except Exception as exc:
                         _record_error(graph, cfg, exc)
                 st.rerun()
