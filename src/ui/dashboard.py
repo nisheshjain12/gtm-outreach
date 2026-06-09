@@ -6,9 +6,12 @@ History table with expandable per-run detail:
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import streamlit as st
+
+# Supabase stores timestamps in UTC; display them in IST (UTC+5:30, no DST).
+_IST = timezone(timedelta(hours=5, minutes=30))
 
 from src.db import supabase_client as db
 from src.ui.components import (
@@ -44,7 +47,10 @@ def _fmt_date(iso: str) -> str:
         return "—"
     try:
         dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
-        return dt.strftime("%b %d %Y, %H:%M")
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)  # assume UTC if no offset
+        dt = dt.astimezone(_IST)
+        return dt.strftime("%b %d %Y, %H:%M") + " IST"
     except Exception:
         return iso[:16]
 

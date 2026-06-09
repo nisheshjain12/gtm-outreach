@@ -408,7 +408,12 @@ def _render_signal_review(payload: dict, state: dict, graph, cfg: dict) -> None:
         age_s = f" · {age}d ago" if age is not None else ""
         score = s.get("total_score") or 0
         t    = s.get("type", "signal").replace("_", " ").title()
-        desc = (s.get("description") or "")[:65]
+        desc = (s.get("description") or "").strip()
+        # Show the full first sentence rather than a hard mid-word cut
+        if len(desc) > 130:
+            cut = desc[:130]
+            dot = cut.rfind(". ")
+            desc = (cut[:dot + 1] if dot > 40 else cut.rsplit(" ", 1)[0]) + " …"
         return f"{t}{sens}{age_s} · Score {score:.1f}  —  {desc}"
 
     selected_id = st.radio(
