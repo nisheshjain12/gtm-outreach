@@ -363,12 +363,22 @@ def _render_run_row(run: dict) -> None:
 def render() -> None:
     inject_css()
 
-    col_h, col_btn = st.columns([5, 1])
+    col_h, col_refresh, col_clean = st.columns([4, 1, 1])
     with col_h:
         st.subheader("Run History")
-    with col_btn:
+    with col_refresh:
         if st.button("Refresh", width='stretch', key="dash_refresh"):
             st.cache_data.clear()
+            st.rerun()
+    with col_clean:
+        if st.button("Clean up", width='stretch', key="dash_cleanup",
+                     help="Mark stuck 'Researching' runs (>15 min old) as Failed"):
+            n = db.mark_stale_runs_failed()
+            st.cache_data.clear()
+            if n:
+                st.success(f"Marked {n} stale run{'s' if n != 1 else ''} as Failed.")
+            else:
+                st.info("No stale runs found.")
             st.rerun()
 
     runs = _load_runs()

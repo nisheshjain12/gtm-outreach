@@ -130,3 +130,21 @@ def get_sources(run_id: str) -> list[dict]:
         .eq("run_id", run_id).order("age_days", desc=False).execute()
     )
     return res.data or []
+
+
+def mark_stale_runs_failed(minutes: int = 15) -> int:
+    """Mark runs stuck in 'researching' for longer than `minutes` as 'failed'.
+
+    Runs in progress for <15 min are left alone to avoid clobbering active runs.
+    Returns the number of rows updated.
+    """
+    from datetime import datetime, timedelta, timezone
+    cutoff = (datetime.now(timezone.utc) - timedelta(minutes=minutes)).isoformat()
+    res = (
+        get_client().table("runs")
+        .update({"status": "failed"})
+        .eq("status", "researching")
+        .lt("created_at", cutoff)
+        .execute()
+    )
+    return len(res.data or [])

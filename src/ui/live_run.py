@@ -35,6 +35,18 @@ def _get_interrupt_payload(snap) -> dict:
         return {}
 
 
+def _record_error(graph, cfg: dict, exc: Exception) -> None:
+    """Store the error message in session state and mark the DB run as 'error'."""
+    st.session_state.run_error = str(exc)
+    try:
+        snap = graph.get_state(cfg)
+        run_id = snap.values.get("run_id") if snap else None
+        if run_id:
+            db.update_run(run_id, {"status": "error"})
+    except Exception:
+        pass
+
+
 # ── Top-level entry point ────────────────────────────────────────────────────
 
 def render(graph) -> None:
@@ -73,7 +85,7 @@ def render(graph) -> None:
                     try:
                         graph.invoke(None, config=cfg)
                     except Exception as exc:
-                        st.session_state.run_error = str(exc)
+                        _record_error(graph, cfg, exc)
                 st.rerun()
         with col_reset:
             if st.button("Start new run", width="stretch"):
@@ -157,7 +169,7 @@ def _render_input_form(graph, cfg: dict) -> None:
                 graph.invoke(initial_state, config=cfg)
                 st.session_state.run_started = True
             except Exception as exc:  # noqa: BLE001
-                st.session_state.run_error = str(exc)
+                _record_error(graph, cfg, exc)
         st.rerun()
 
 
@@ -201,7 +213,7 @@ def _render_run_view(graph, cfg: dict) -> None:
                 try:
                     graph.invoke(None, config=cfg)
                 except Exception as exc:  # noqa: BLE001
-                    st.session_state.run_error = str(exc)
+                    _record_error(graph, cfg, exc)
             st.rerun()
 
 
@@ -291,7 +303,7 @@ def _render_disambiguate(payload: dict, state: dict, graph, cfg: dict) -> None:
                 try:
                     graph.invoke(Command(resume={}), config=cfg)
                 except Exception as exc:
-                    st.session_state.run_error = str(exc)
+                    _record_error(graph, cfg, exc)
             st.rerun()
         return
 
@@ -319,7 +331,7 @@ def _render_disambiguate(payload: dict, state: dict, graph, cfg: dict) -> None:
             try:
                 graph.invoke(Command(resume=candidates[idx]), config=cfg)
             except Exception as exc:
-                st.session_state.run_error = str(exc)
+                _record_error(graph, cfg, exc)
         st.rerun()
 
 
@@ -395,7 +407,7 @@ def _render_signal_review(payload: dict, state: dict, graph, cfg: dict) -> None:
                     config=cfg,
                 )
             except Exception as exc:  # noqa: BLE001
-                st.session_state.run_error = str(exc)
+                _record_error(graph, cfg, exc)
         st.rerun()
 
 
@@ -482,7 +494,7 @@ def _render_draft_review(payload: dict, state: dict, graph, cfg: dict) -> None:
                             config=cfg,
                         )
                     except Exception as exc:  # noqa: BLE001
-                        st.session_state.run_error = str(exc)
+                        _record_error(graph, cfg, exc)
                 st.rerun()
             else:
                 st.warning("Enter instructions before regenerating.")
@@ -524,7 +536,7 @@ def _render_approve(payload: dict, state: dict, graph, cfg: dict) -> None:
             try:
                 graph.invoke(Command(resume={"action": "approve"}), config=cfg)
             except Exception as exc:  # noqa: BLE001
-                st.session_state.run_error = str(exc)
+                _record_error(graph, cfg, exc)
         st.rerun()
 
 
