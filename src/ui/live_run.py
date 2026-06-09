@@ -302,9 +302,9 @@ def _render_pipeline_summary(state: dict) -> None:
         if freshness and freshness != "fresh":
             badge = freshness_badge(freshness)
             msg = (
-                "Most recent signal is over 90 days old — draft will use forward-looking, hedged framing."
+                f"Most recent signal is over {config.FRESH_DAYS} days old — draft will use forward-looking, hedged framing."
                 if freshness == "stale"
-                else "Most recent signal is over 180 days old — very stale; proceed with caution."
+                else f"Most recent signal is over {config.VERY_STALE_DAYS} days old — very stale; proceed with caution."
             )
             st.markdown(f"{badge} &nbsp;{msg}", unsafe_allow_html=True)
 

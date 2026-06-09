@@ -5,6 +5,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from src import config
+
 # ── Badge configs ────────────────────────────────────────────────────────────
 
 _FLAG_META: dict[str, tuple[str, str, str]] = {
@@ -115,7 +117,10 @@ def render_signal_card(sig: dict) -> None:
     c5.metric("Confidence",   scores.get("confidence", "-"))
 
     if age is not None:
-        freshness = "fresh" if age <= 90 else ("stale" if age <= 180 else "very_stale")
+        freshness = (
+            "fresh" if age <= config.FRESH_DAYS
+            else ("stale" if age <= config.VERY_STALE_DAYS else "very_stale")
+        )
         st.markdown(
             freshness_badge(freshness) + f"&nbsp;&nbsp;{age} days ago",
             unsafe_allow_html=True,

@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 # Queries 1 & 5 are person-specific — dropped in Account mode (no prospect_name).
 _QUERY_META: list[tuple[str, str, bool]] = [
     ('"{prospect_name}" {company_name}',                                    "prospect",       True),
-    ("{company_name} news 2026",                                            "news",           False),
+    ("{company_name} news {year}",                                          "news",           False),
     ("{company_name} funding OR raised OR Series",                          "funding",        False),
     ('{company_name} hiring OR "is hiring" OR open roles',                  "hiring",         False),
     ('"{prospect_name}" interview OR podcast OR keynote',                   "exec_interview", True),
@@ -113,6 +113,7 @@ class TavilyProvider:
             query = template.format(
                 prospect_name=prospect_name or "",
                 company_name=company,
+                year=date.today().year,
             )
             try:
                 raw_results: list[dict] = cached(
