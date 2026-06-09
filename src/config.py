@@ -12,6 +12,26 @@ TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
+
+def gemini_api_keys() -> list[str]:
+    """All configured Gemini keys, in priority order.
+
+    Sources (de-duplicated, order preserved):
+      • GEMINI_API_KEY, GEMINI_API_KEY_2 … GEMINI_API_KEY_5
+      • GEMINI_API_KEYS  (comma-separated bundle)
+
+    The LLM client tries each key in turn; when one key's *daily* quota is
+    exhausted it rotates to the next. Each key needs its own free-tier
+    quota — see the note in .env.example about per-project limits.
+    """
+    names = ["GEMINI_API_KEY"] + [f"GEMINI_API_KEY_{i}" for i in range(2, 6)]
+    keys = [v.strip() for n in names if (v := os.getenv(n))]
+    bundle = os.getenv("GEMINI_API_KEYS")
+    if bundle:
+        keys += [k.strip() for k in bundle.split(",") if k.strip()]
+    seen: set[str] = set()
+    return [k for k in keys if k and not (k in seen or seen.add(k))]
+
 # ── Models — Gemini (free tier via AI Studio) ──────────────────────────────
 # gemini-2.5-flash: primary (works when not under extreme load)
 # gemini-2.5-flash-lite: cascade fallback when primary daily quota exhausted
@@ -36,7 +56,6 @@ CACHE_DIR = Path(os.getenv("CACHE_DIR", ROOT / "cache"))
 
 
 def missing_keys() -> list[str]:
-    """Return names of secrets that are not set (for a Settings/health banner)."""
     pairs = {
         "GEMINI_API_KEY": GEMINI_API_KEY,
         "TAVILY_API_KEY": TAVILY_API_KEY,
