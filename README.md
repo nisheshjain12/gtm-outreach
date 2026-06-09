@@ -2,7 +2,7 @@
 
 **An AI-assisted B2B outreach tool that turns a prospect's name into a researched, personalized, human-approved cold email — not a template with the name filled in.**
 
-Live app: *(your Streamlit Cloud URL)* · Stack: Streamlit · LangGraph · Gemini · Tavily · Supabase
+Live app: **https://gtm-outreach.streamlit.app/** · Stack: Streamlit · LangGraph · Gemini · Tavily · Supabase
 
 ---
 
