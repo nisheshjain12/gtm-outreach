@@ -9,6 +9,9 @@ venv/
 .env
 .streamlit/secrets.toml
 
+# Case-study brief — keep local, not on the public repo
+assessment.txt
+
 # Cache (per-query Tavily/Claude responses)
 cache/
 
