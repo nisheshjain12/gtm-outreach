@@ -100,11 +100,27 @@ def research(state: RunState) -> dict:
 
 # ── 4. extract ───────────────────────────────────────────────────────────────
 
+def _trim_for_llm(sources: list[dict], limit: int | None = None) -> list[dict]:
+    """Bound the research payload sent to the LLM so the JSON response stays
+    complete even for high-volume companies (e.g. Meta returned ~228 KB and
+    truncated the model's output). Caps the source count and snippet length;
+    the full sources are still stored in the DB untouched.
+    """
+    max_sources = limit or config.MAX_RESEARCH_SOURCES
+    trimmed = []
+    for s in sources[:max_sources]:
+        snip = s.get("snippet") or ""
+        if len(snip) > config.MAX_SNIPPET_CHARS:
+            s = {**s, "snippet": snip[:config.MAX_SNIPPET_CHARS] + "…"}
+        trimmed.append(s)
+    return trimmed
+
+
 def extract(state: RunState) -> dict:
     result = llm.extract_signals(
         prospect_name=state.get("prospect_name"),
         company_name=state["company"],
-        research_json=json.dumps(state.get("research", [])),
+        research_json=json.dumps(_trim_for_llm(state.get("research", []))),
         extra_context=state.get("extra_context", ""),
     )
     signals = result.get("signals", [])
@@ -122,7 +138,7 @@ def flag(state: RunState) -> dict:
     account_contacts = state.get("account_contacts", [])
 
     # LLM judges ambiguous_name only (never date math — that's deterministic code)
-    research_sample = json.dumps(state.get("research", [])[:10])
+    research_sample = json.dumps(_trim_for_llm(state.get("research", []), limit=10))
     classify = llm.classify_edges(
         prospect_name=state.get("prospect_name"),
         company_name=state["company"],

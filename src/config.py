@@ -50,6 +50,12 @@ SENSITIVE_WINDOW_DAYS = 180
 NUM_QUERIES = 6
 MAX_SIGNALS_SHOWN = 5
 
+# LLM payload bounds — keep extraction input/output small enough that the
+# model returns complete, valid JSON even for high-volume companies (e.g. Meta).
+MAX_RESEARCH_SOURCES = 24   # cap sources sent to the LLM (extract/classify)
+MAX_SNIPPET_CHARS = 600     # truncate each source snippet sent to the LLM
+MAX_SIGNALS_EXTRACTED = 20  # ceiling on extracted signals (bounds output size)
+
 # ── Paths ──────────────────────────────────────────────────────────────────
 ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = Path(os.getenv("CACHE_DIR", ROOT / "cache"))

@@ -164,6 +164,7 @@ def extract_signals(
         company_name=company_name,
         extra_context=extra_context or "(none)",
         research_json=research_json,
+        max_signals=config.MAX_SIGNALS_EXTRACTED,
     )
     return call_json(config.MODEL_EXTRACT, prompt)
 

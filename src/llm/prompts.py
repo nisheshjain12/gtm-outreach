@@ -2,6 +2,8 @@
 EXTRACT = """You are a B2B sales-research analyst. From the raw web results below, extract
 discrete, factual SIGNALS about the prospect or their company. Do not invent
 anything not present in the results. Ignore marketing fluff.
+Return at most {max_signals} of the most significant, distinct signals — merge
+duplicates and drop trivia.
 
 Prospect: {prospect_name}   Company: {company_name}
 Context (optional): {extra_context}
